@@ -1,0 +1,178 @@
+.how-shell {
+  min-height: 100vh;
+  overflow: visible;
+  background:
+    radial-gradient(circle at 64% 18%, rgba(169, 180, 185, 0.08), transparent 30rem),
+    #070808;
+}
+
+.how-page {
+  width: min(1560px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 42px 0 90px;
+}
+
+.how-game-chip {
+  width: fit-content;
+}
+
+.how-intro {
+  padding: 28px 0 42px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.how-eyebrow {
+  margin: 0 0 20px;
+  color: #bcc3c6;
+  text-align: left;
+}
+
+.how-shell .how-title {
+  max-width: 1100px;
+  margin: 0;
+  color: #f7f8f8;
+  font-size: clamp(58px, 5.6vw, 92px);
+  font-weight: 900;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.how-intro > p:last-child {
+  max-width: 980px;
+  margin: 34px 0 0;
+  color: #b9bcbd;
+  font-size: clamp(17px, 1.2vw, 20px);
+  line-height: 1.7;
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  align-items: start;
+  gap: 30px;
+  padding-top: 40px;
+}
+
+.how-column {
+  display: grid;
+  gap: 26px;
+}
+
+.how-card {
+  padding: 31px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(24, 26, 26, 0.98), rgba(13, 14, 14, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.how-card p {
+  margin: 0;
+  color: #b5b8ba;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.how-card > p + p {
+  margin-top: 18px;
+}
+
+.how-card h2 {
+  margin: 0 0 14px;
+  color: #f5f6f6;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.how-card .card-kicker {
+  margin-bottom: 26px;
+  color: #ccd2d5;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.mode-option {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  background: rgba(5, 6, 6, 0.78);
+}
+
+.mode-option + .mode-option {
+  margin-top: 14px;
+}
+
+.rare-card {
+  border-color: rgba(203, 215, 220, 0.3);
+  background:
+    linear-gradient(125deg, rgba(204, 215, 220, 0.06), transparent 42%),
+    #0b0d0d;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 40px rgba(190, 202, 207, 0.04);
+}
+
+.rare-card .card-kicker,
+.share-card .card-kicker {
+  color: #e0e5e7;
+}
+
+.share-card {
+  border-color: rgba(203, 215, 220, 0.24);
+  background: linear-gradient(145deg, rgba(94, 104, 109, 0.2), rgba(17, 19, 19, 0.98));
+}
+
+.start-button {
+  width: 100%;
+  min-height: 64px;
+  margin-top: 26px;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .how-page {
+    padding-top: 28px;
+  }
+
+  .how-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .how-shell .how-title {
+    font-size: clamp(48px, 11vw, 78px);
+  }
+}
+
+@media (max-width: 560px) {
+  .how-page {
+    width: calc(100% - 30px);
+    padding-bottom: 50px;
+  }
+
+  .how-intro {
+    padding: 24px 0 32px;
+  }
+
+  .how-shell .how-title {
+    font-size: 45px;
+    line-height: 1;
+  }
+
+  .how-intro > p:last-child,
+  .how-card p {
+    font-size: 15px;
+  }
+
+  .how-card {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .mode-option {
+    padding: 18px;
+  }
+}
