@@ -7,7 +7,8 @@ export type SavedRun = { id: string; mode: string; position: string; overall: nu
 
 export async function ensureProfile(user: User) {
   if (!supabase || !user.email) return;
-  await supabase.from("profiles").upsert({ id: user.id, email: user.email, display_name: user.user_metadata.full_name ?? user.user_metadata.name ?? null }, { onConflict: "id" });
+  const { error } = await supabase.from("profiles").upsert({ id: user.id, email: user.email, display_name: user.user_metadata.full_name ?? user.user_metadata.name ?? null }, { onConflict: "id" });
+  if (error) throw new Error(`Profile setup failed: ${error.message}`);
 }
 
 export async function saveRun(run: Omit<SavedRun, "id" | "created_at"> & { build_snapshot: Record<string, number> }) {
@@ -15,9 +16,10 @@ export async function saveRun(run: Omit<SavedRun, "id" | "created_at"> & { build
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Log in to save this run.");
   await ensureProfile(user);
-  const { data: existingRuns } = await supabase.from("runs").select("id, mode, overall, result").eq("user_id", user.id);
+  const { data: existingRuns, error: existingRunsError } = await supabase.from("runs").select("id, mode, overall, result").eq("user_id", user.id);
+  if (existingRunsError) throw new Error(`Could not read saved runs: ${existingRunsError.message}`);
   const { error } = await supabase.from("runs").insert({ ...run, user_id: user.id });
-  if (error) throw error;
+  if (error) throw new Error(`Could not save run: ${error.message}`);
   const prior = existingRuns ?? [];
   const earned: { id: string; title: string; reward: number }[] = [];
   if (!prior.length) earned.push({ id: "first-run", title: "First Shift", reward: 10 });
