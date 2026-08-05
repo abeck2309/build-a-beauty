@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import AccountForm from "./account-form";
 import AccountActions from "./account-actions";
 import "./account.css";
@@ -14,6 +15,6 @@ export default function AccountPage() {
       <nav className="main-nav" aria-label="Primary navigation"><a href="/play">Play</a><a href="/achievements">Achievements</a><a href="/#leaderboard">Leaderboard</a></nav>
       <AccountActions />
     </header>
-    <AccountForm />
+    <Suspense fallback={null}><AccountForm /></Suspense>
   </main>;
 }

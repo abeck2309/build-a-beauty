@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export default function AccountForm() {
   const searchParams = useSearchParams();

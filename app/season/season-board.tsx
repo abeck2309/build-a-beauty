@@ -470,7 +470,7 @@ export default function SeasonBoard({ careerTeam, overall, position, archetype, 
 
   useEffect(() => {
     const statCells = document.querySelectorAll<HTMLElement>(".season-team-averages span");
-    const statValues = [[beautyStats.goals, "G"], [beautyStats.assists, "A"], [beautyStats.points, "PTS"]];
+    const statValues: Array<[number, string]> = [[beautyStats.goals, "G"], [beautyStats.assists, "A"], [beautyStats.points, "PTS"]];
     statCells.forEach((cell, index) => {
       const [value, label] = statValues[index] ?? [0, ""];
       const valueNode = cell.querySelector("strong");

@@ -9,11 +9,12 @@ export default function ProfilePanel() {
   const [runs, setRuns] = useState<SavedRun[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
+    const client = supabase;
+    if (!client) { setLoading(false); return; }
+    client.auth.getUser().then(async ({ data: { user } }) => {
       if (!user?.email) { setLoading(false); return; }
       await ensureProfile(user); setEmail(user.email);
-      const { data } = await supabase.from("runs").select("id, mode, position, overall, archetype, career_team, record, result, created_at").order("created_at", { ascending: false });
+      const { data } = await client.from("runs").select("id, mode, position, overall, archetype, career_team, record, result, created_at").order("created_at", { ascending: false });
       setRuns((data ?? []) as SavedRun[]); setLoading(false);
     });
   }, []);
