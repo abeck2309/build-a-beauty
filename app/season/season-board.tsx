@@ -14,7 +14,7 @@ const divisions = [
   { conference: "Western Conference", name: "Pacific Division", teams: ["Anaheim Ducks", "Calgary Flames", "Edmonton Oilers", "Los Angeles Kings", "San Jose Sharks", "Seattle Kraken", "Vancouver Canucks", "Vegas Golden Knights"] },
 ] as const;
 
-type BuildRatings = { off: number; pas: number; acc: number; pow: number; def: number; spd: number };
+type BuildRatings = { off: number; pas: number; acc: number; pow: number; dek: number; def: number; spd: number };
 type Props = { careerTeam: string; overall: number; position: "W" | "C" | "D" | "G"; archetype: string; buildRatings: BuildRatings };
 type RecordState = { wins: number; losses: number; overtimeLosses: number };
 type StandingsEntry = { team: string; record: RecordState; gamesPlayed: number; points: number; regulationWins: number; rowWins: number; goalsFor: number; goalsAgainst: number };
@@ -369,6 +369,14 @@ export default function SeasonBoard({ careerTeam, overall, position, archetype, 
     // Team ratings set the scoring baseline. The custom Beauty's quality and
     // game-to-game form can nudge it, but never overpower the team model.
     const buildSkill = (buildRatings.off + buildRatings.pas + buildRatings.acc + buildRatings.pow + buildRatings.def + buildRatings.spd) / 6;
+    // A Beauty's scoring role comes from the offensive tools actually drafted,
+    // not just the rounded OVR. This gives loaded offensive builds a meaningful
+    // star-scoring ceiling without making every high-OVR two-way build a lock
+    // for 120 points.
+    const offensiveProfile = buildRatings.off * .30 + buildRatings.pas * .25 + buildRatings.acc * .20 + buildRatings.pow * .18 + buildRatings.dek * .07;
+    const eliteOffensiveBonus = Math.max(0, (offensiveProfile - 84) * .024) + Math.max(0, (overall - 89) * .012);
+    const beautySeasonRandom = seededRandom(seasonSeed + teamHash(careerTeam) * 31 + overall * 131);
+    const beautySeasonForm = (beautySeasonRandom() - .5) * .26;
     const eliteOpportunity = overall >= 90 ? Math.min(.14, (overall - 89) * .014) : Math.max(-.025, (overall - 82) * .0015);
     // OVR lightly affects role/usage. The actual box score is driven mostly by
     // the selected skill mix and a season form roll, so identical OVRs can have
@@ -396,14 +404,14 @@ export default function SeasonBoard({ careerTeam, overall, position, archetype, 
     // offensive blue-liners can reach that territory only through a rare spike.
     const defenseGoalMean = Math.max(.025, .03 + (shooting - 70) * .0027 + (isOffensiveDefenseman ? .038 : isTwoWayDefenseman ? .019 : 0) + beautyForm * .07);
     const defenseAssistMean = Math.max(.10, .12 + (puckSkill - 70) * .0075 + (isOffensiveDefenseman ? .07 : isTwoWayDefenseman ? .04 : .012) + beautyForm * .12);
-    const forwardGoalMean = Math.max(.08, .22 + (shooting - 75) * .006 + beautyForm * .24 + eliteOpportunity * .42);
-    const forwardAssistMean = Math.max(.08, .25 + (puckSkill - 75) * .0075 + beautyForm * .3 + eliteOpportunity * .58);
+    const forwardGoalMean = Math.max(.08, .22 + (shooting - 75) * .006 + beautyForm * .24 + eliteOpportunity * .42 + eliteOffensiveBonus * .43 + beautySeasonForm * .42);
+    const forwardAssistMean = Math.max(.08, .25 + (puckSkill - 75) * .0075 + beautyForm * .3 + eliteOpportunity * .58 + eliteOffensiveBonus * .57 + beautySeasonForm * .58);
     const goals = isGoalie ? 0 : Math.max(0, Math.min(isDefenseman ? 2 : 3, poisson(random, isDefenseman ? defenseGoalMean : forwardGoalMean)));
     const assists = isGoalie ? 0 : Math.max(0, Math.min(isDefenseman ? 3 : 4, poisson(random, isDefenseman ? defenseAssistMean : forwardAssistMean)));
     const shots = Math.max(1, goals + poisson(random, 2.2 + (shooting - 75) * .035 + eliteOpportunity * 1.5));
     const toi = `${15 + Math.floor(random() * 7)}:${String(Math.floor(random() * 60)).padStart(2, "0")}`;
     return { teamScore, opponentScore, result, goals, assists, shots, toi };
-  }, [careerTeam, overall, seasonSeed]);
+  }, [archetype, buildRatings, careerTeam, overall, position, seasonSeed]);
 
   const completeGames = useCallback((count: number) => {
     const games = teamSchedule.slice(gameIndex, gameIndex + count);

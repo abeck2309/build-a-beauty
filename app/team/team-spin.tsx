@@ -12,7 +12,7 @@ const teamLogos: Record<string, string> = {
 const easternTeams = new Set(["Boston Bruins", "Buffalo Sabres", "Carolina Hurricanes", "Columbus Blue Jackets", "Detroit Red Wings", "Florida Panthers", "Montreal Canadiens", "New Jersey Devils", "New York Islanders", "New York Rangers", "Ottawa Senators", "Philadelphia Flyers", "Pittsburgh Penguins", "Tampa Bay Lightning", "Toronto Maple Leafs", "Washington Capitals"]);
 const teamNames = Object.keys(teamLogos);
 
-type BuildRatings = { off: number; pas: number; acc: number; pow: number; def: number; spd: number };
+type BuildRatings = { off: number; pas: number; acc: number; pow: number; dek: number; def: number; spd: number };
 type Props = { position: "W" | "C" | "D" | "G"; overall: number; archetype: string; buildRatings: BuildRatings };
 type LineupSlot = { slot: string; player: string; note: string; isBeauty?: boolean };
 
@@ -99,7 +99,7 @@ export default function TeamSpin({ position, overall, archetype, buildRatings }:
         ) : (
           <div className="team-spin-placeholder"><div className="team-empty-mark">—</div><div><span>No team yet</span><h2>Press start<br />team spin</h2><p>Your career team will be revealed here.</p></div></div>
         )}
-        {team ? <a className="team-spin-button" href={`/season?team=${encodeURIComponent(team)}&position=${position}&overall=${overall}&archetype=${encodeURIComponent(archetype)}&off=${buildRatings.off}&pas=${buildRatings.pas}&acc=${buildRatings.acc}&pow=${buildRatings.pow}&def=${buildRatings.def}&spd=${buildRatings.spd}`}>Continue to season</a> : <button className="team-spin-button" type="button" onClick={spinTeam} disabled={spinning}>{spinning ? "Spinning..." : "Start team spin"}</button>}
+        {team ? <a className="team-spin-button" href={`/season?team=${encodeURIComponent(team)}&position=${position}&overall=${overall}&archetype=${encodeURIComponent(archetype)}&off=${buildRatings.off}&pas=${buildRatings.pas}&acc=${buildRatings.acc}&pow=${buildRatings.pow}&dek=${buildRatings.dek}&def=${buildRatings.def}&spd=${buildRatings.spd}`}>Continue to season</a> : <button className="team-spin-button" type="button" onClick={spinTeam} disabled={spinning}>{spinning ? "Spinning..." : "Start team spin"}</button>}
         <p className="team-note">{team ? "The season opens with all 32 teams at 0–0. Game simulation comes next." : "Press the button to reveal where your Beauty starts their career."}</p>
       </section>
 

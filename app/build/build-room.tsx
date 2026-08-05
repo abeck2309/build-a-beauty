@@ -249,6 +249,7 @@ export default function BuildRoom({ position, mode, demoComplete = false, demoSe
       pas: String(lockedAttributes.PAS?.rating ?? 80),
       acc: String(lockedAttributes.ACC?.rating ?? 80),
       pow: String(lockedAttributes.POW?.rating ?? 80),
+      dek: String(lockedAttributes.DEK?.rating ?? 80),
       def: String(lockedAttributes.DEF?.rating ?? 80),
       spd: String(lockedAttributes.SPD?.rating ?? 80),
     });

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 type Position = "W" | "C" | "D" | "G";
-type BuildRatings = { off: number; pas: number; acc: number; pow: number; def: number; spd: number };
+type BuildRatings = { off: number; pas: number; acc: number; pow: number; dek: number; def: number; spd: number };
 
 function ratingParam(value: string | undefined) {
   const rating = Number(value);
@@ -35,14 +35,14 @@ function Header() {
 export default async function TeamPage({
   searchParams,
 }: {
-  searchParams: Promise<{ position?: string; overall?: string; archetype?: string; off?: string; pas?: string; acc?: string; pow?: string; def?: string; spd?: string }>;
+  searchParams: Promise<{ position?: string; overall?: string; archetype?: string; off?: string; pas?: string; acc?: string; pow?: string; dek?: string; def?: string; spd?: string }>;
 }) {
   const params = await searchParams;
   const position: Position = params.position === "C" || params.position === "D" || params.position === "G" ? params.position : "W";
   const overallValue = Number(params.overall);
   const overall = Number.isInteger(overallValue) && overallValue >= 1 && overallValue <= 99 ? overallValue : 80;
   const archetype = params.archetype?.trim() || "All-Around Skater";
-  const buildRatings: BuildRatings = { off: ratingParam(params.off), pas: ratingParam(params.pas), acc: ratingParam(params.acc), pow: ratingParam(params.pow), def: ratingParam(params.def), spd: ratingParam(params.spd) };
+  const buildRatings: BuildRatings = { off: ratingParam(params.off), pas: ratingParam(params.pas), acc: ratingParam(params.acc), pow: ratingParam(params.pow), dek: ratingParam(params.dek), def: ratingParam(params.def), spd: ratingParam(params.spd) };
 
   return (
     <main className="team-shell">
