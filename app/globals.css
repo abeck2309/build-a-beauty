@@ -574,7 +574,7 @@ h1 span {
   }
 
   .button-contact {
-    display: none;
+    display: inline-flex;
   }
 
   .stat-row {
@@ -783,7 +783,12 @@ h1 span {
   .main-nav a { flex: 0 0 auto; padding: 10px 9px; font-size: 9px; letter-spacing: .08em; }
   .account-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
   .account-actions .button { min-height: 36px; padding: 0 9px; border-radius: 12px; font-size: 8px; letter-spacing: .07em; white-space: nowrap; }
+  .account-actions .button-dark { display: inline-flex; }
   .account-actions .button-compact { min-width: 0; }
+  .arena-lines,
+  .hero::after { display: none; }
+  .hero-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hero-actions .button-large { min-width: 0; padding-inline: 8px; font-size: 9px; letter-spacing: .1em; }
   .hero { min-height: calc(100vh - 64px); padding-inline: 14px; }
   .achievement-toasts { top: 74px; right: 12px; width: min(350px, calc(100vw - 24px)); }
   .achievement-more { width: 100%; min-height: 58px; display: block; margin: 18px 0 40px; border: 1px solid #a9b8bd; border-radius: 16px; color: #091011; background: linear-gradient(135deg,#f1f5f6,#a4b1b5 55%,#dbe4e6); font: inherit; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
