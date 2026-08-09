@@ -824,3 +824,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width:700px) {
+  .build-page { padding-bottom:24px; }
+  .build-intro { padding-bottom:24px; }
+  .build-intro h1 { font-size:clamp(44px,15vw,66px); }
+  .build-room-layout { display:block; }
+  .build-sidebar { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(86vw,1fr); overflow-x:auto; gap:14px; padding:16px 14px 14px 0; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .build-sidebar::-webkit-scrollbar { display:none; }
+  .build-sidebar > * { scroll-snap-align:start; }
+  .build-roster { max-height:58vh; overflow:auto; }
+  .build-grade-grid, .chaos-attribute-grid { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(42vw,1fr); grid-template-columns:none; overflow-x:auto; gap:10px; padding-bottom:10px; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .build-grade-grid::-webkit-scrollbar, .chaos-attribute-grid::-webkit-scrollbar { display:none; }
+}

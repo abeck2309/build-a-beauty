@@ -176,3 +176,12 @@
     padding: 18px;
   }
 }
+
+@media (max-width:700px) {
+  .how-page { padding-bottom:24px; }
+  .how-intro { padding-bottom:22px; }
+  .how-title { font-size:clamp(44px,15vw,66px); }
+  .how-grid { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(86vw,1fr); grid-template-columns:none; overflow-x:auto; gap:14px; padding:0 14px 14px 0; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .how-grid::-webkit-scrollbar { display:none; }
+  .how-column { display:grid; gap:14px; align-content:start; scroll-snap-align:start; }
+}

@@ -410,3 +410,14 @@
     padding: 22px;
   }
 }
+
+@media (max-width:700px) {
+  .play-page { padding-bottom:24px; }
+  .play-intro { padding-bottom:24px; }
+  .play-title { font-size:clamp(44px,15vw,66px); }
+  .mode-grid, .attribute-grid { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(82vw,1fr); grid-template-columns:none; overflow-x:auto; gap:14px; padding:0 14px 14px 0; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .mode-grid::-webkit-scrollbar, .attribute-grid::-webkit-scrollbar { display:none; }
+  .mode-grid > *, .attribute-grid > * { scroll-snap-align:start; }
+  .play-layout { display:block; }
+  .build-status { margin-top:16px; }
+}

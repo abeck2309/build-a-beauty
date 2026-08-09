@@ -625,3 +625,14 @@
     animation: none;
   }
 }
+
+@media (max-width:700px) {
+  .setup-page { padding-bottom:24px; }
+  .setup-intro { padding-bottom:24px; }
+  .setup-intro h1 { font-size:clamp(44px,15vw,66px); }
+  .classic-layout, .chaos-layout, .blind-layout { display:block; }
+  .position-grid { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(72vw,1fr); grid-template-columns:none; overflow-x:auto; gap:14px; padding:0 14px 14px 0; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .position-grid::-webkit-scrollbar { display:none; }
+  .position-grid > * { scroll-snap-align:start; }
+  .selected-position-panel, .chaos-sidebar, .blind-status-card { margin-top:16px; }
+}
