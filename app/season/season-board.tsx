@@ -20,8 +20,9 @@ type RecordState = { wins: number; losses: number; overtimeLosses: number };
 type StandingsEntry = { team: string; record: RecordState; gamesPlayed: number; points: number; regulationWins: number; rowWins: number; goalsFor: number; goalsAgainst: number };
 type ScheduledGame = { opponent: string; home: boolean };
 type CompletedGame = { result: "W" | "L" | "OTL"; matchup: string; score: string; statline: string; points: number };
+type SimPlayer = Pick<(typeof nhlRosterData)[number], "name" | "team" | "position" | "ratings">;
 type LeagueLine = {
-  player: (typeof nhlRosterData)[number];
+  player: SimPlayer;
   goals: number;
   assists: number;
   points: number;
@@ -87,10 +88,15 @@ function awardWinner(lines: LeagueLine[], baseline: (line: LeagueLine) => number
   // First establish a credible contender group, then let the individual season
   // decide it. This allows genuine surprise winners without handing awards to
   // depth players from a single lucky ratings roll.
-  return [...lines]
+  const sorted = [...lines]
     .sort((first, second) => baseline(second) - baseline(first))
-    .slice(0, candidateCount)
-    .sort((first, second) => seasonScore(second) - seasonScore(first))[0];
+  const contenders = sorted.slice(0, candidateCount);
+  // The user's player is always evaluated on the season they actually had,
+  // rather than being discarded before voting because a static projection did
+  // not put them in the pre-season contender tier.
+  const beauty = sorted.find((line) => line.player.name === "Your Beauty");
+  if (beauty && !contenders.includes(beauty)) contenders.push(beauty);
+  return contenders.sort((first, second) => seasonScore(second) - seasonScore(first))[0];
 }
 
 function normalizedName(name: string) {
@@ -255,9 +261,16 @@ function playerLine(player: (typeof nhlRosterData)[number], games: number, seaso
     : Math.max(.08, (.15 + (offense - 65) * .034 + seasonForm) * positionMultiplier * scoringEnvironment);
   const skaterCeiling = Math.round(96 + scoringEnvironment * 45);
   const points = Math.min(player.position === "D" ? 92 : skaterCeiling, Math.round(games * pointsPerGame));
+  const shotRating = ((ratings.POW ?? 75) + (ratings.ACC ?? 75)) / 2;
+  const passRating = ratings.PAS ?? 75;
+  // A few rating points either way should not force a player into a role. Once
+  // the gap becomes clear, though, shooters lean toward goals and distributors
+  // toward assists while keeping the overall point total intact.
+  const tendencyGap = shotRating - passRating;
+  const tendency = Math.sign(tendencyGap) * Math.max(0, Math.abs(tendencyGap) - 4) * (player.position === "D" ? .0025 : .0045);
   const scoringShare = player.position === "D"
-    ? Math.max(.12, Math.min(.34, .185 + ((ratings.POW ?? 75) + (ratings.ACC ?? 75) - 155) * .0025 + Math.max(0, (ratings.POW ?? 75) - 90) * .007))
-    : Math.max(.24, Math.min(.62, .37 + ((ratings.POW ?? 75) + (ratings.ACC ?? 75) - (ratings.PAS ?? 75) - 75) * .004));
+    ? Math.max(.10, Math.min(.36, .185 + tendency + Math.max(0, (ratings.POW ?? 75) - 90) * .007))
+    : Math.max(.24, Math.min(.62, .38 + tendency));
   const goals = Math.min(player.position === "D" ? 31 : 72, Math.round(points * Math.max(player.position === "D" ? .10 : .13, Math.min(player.position === "D" ? .36 : .65, scoringShare + finishingLuck + (random() - .5) * (player.position === "D" ? .055 : .09)))));
   return { player, goals, assists: Math.max(0, points - goals), points, gamesPlayed: games, starts: 0, wins: 0, savePct: 0, gaa: 0 };
 }
@@ -404,13 +417,15 @@ export default function SeasonBoard({ careerTeam, overall, position, archetype, 
     const isTwoWayDefenseman = archetype === "Two-Way Defenseman" || archetype === "Mobile Defender";
     const shooting = buildRatings.pow * .4 + buildRatings.acc * .4 + buildRatings.off * .2;
     const puckSkill = buildRatings.off * .45 + buildRatings.pas * .4 + buildRatings.spd * .15;
+    const shotPassGap = ((buildRatings.pow + buildRatings.acc) / 2) - buildRatings.pas;
+    const shotPassTendency = Math.sign(shotPassGap) * Math.max(0, Math.abs(shotPassGap) - 4) * .0045;
     // Defensemen score predominantly through assists. A shutdown player with a
     // high offensive-awareness pull is still not treated as a 25-goal forward;
     // offensive blue-liners can reach that territory only through a rare spike.
     const defenseGoalMean = Math.max(.025, .03 + (shooting - 70) * .0027 + (isOffensiveDefenseman ? .038 : isTwoWayDefenseman ? .019 : 0) + beautyForm * .07);
     const defenseAssistMean = Math.max(.10, .12 + (puckSkill - 70) * .0075 + (isOffensiveDefenseman ? .07 : isTwoWayDefenseman ? .04 : .012) + beautyForm * .12);
-    const forwardGoalMean = Math.max(.08, .22 + (shooting - 75) * .006 + beautyForm * .24 + eliteOpportunity * .42 + eliteOffensiveBonus * .43 + beautySeasonForm * .42);
-    const forwardAssistMean = Math.max(.08, .25 + (puckSkill - 75) * .0075 + beautyForm * .3 + eliteOpportunity * .58 + eliteOffensiveBonus * .57 + beautySeasonForm * .58);
+    const forwardGoalMean = Math.max(.08, .22 + (shooting - 75) * .006 + beautyForm * .24 + eliteOpportunity * .42 + eliteOffensiveBonus * .43 + beautySeasonForm * .42 + shotPassTendency * 1.1);
+    const forwardAssistMean = Math.max(.08, .25 + (puckSkill - 75) * .0075 + beautyForm * .3 + eliteOpportunity * .58 + eliteOffensiveBonus * .57 + beautySeasonForm * .58 - shotPassTendency * .9);
     const goals = isGoalie ? 0 : Math.max(0, Math.min(isDefenseman ? 2 : 3, poisson(random, isDefenseman ? defenseGoalMean : forwardGoalMean)));
     const assists = isGoalie ? 0 : Math.max(0, Math.min(isDefenseman ? 3 : 4, poisson(random, isDefenseman ? defenseAssistMean : forwardAssistMean)));
     const shots = Math.max(1, goals + poisson(random, 2.2 + (shooting - 75) * .035 + eliteOpportunity * 1.5));
@@ -494,14 +509,34 @@ export default function SeasonBoard({ careerTeam, overall, position, archetype, 
     });
   }, [beautyStats]);
   const leagueLines = useMemo(() => nhlRosterData.filter((player) => !player.isDynasty).map((player) => playerLine(player, gamesPlayed, seasonSeed)), [gamesPlayed, seasonSeed]);
-  const skaterLines = leagueLines.filter((line) => line.player.position !== "G");
-  const goalies = leagueLines.filter((line) => line.player.position === "G");
+  const beautyAwardPlayer: SimPlayer = { name: "Your Beauty", team: careerTeam, position, ratings: { OFF: buildRatings.off, PAS: buildRatings.pas, ACC: buildRatings.acc, POW: buildRatings.pow, DEK: buildRatings.dek, DEF: buildRatings.def, SPD: buildRatings.spd, POI: overall } };
+  const beautyGoalieQuality = overall * .72 + buildRatings.def * .14 + buildRatings.spd * .08 + buildRatings.off * .06;
+  const beautyGoalieForm = playerSeasonForm("Your Beauty", seasonSeed) * .45;
+  const beautyAwardLine: LeagueLine = position === "G"
+    ? {
+        player: beautyAwardPlayer,
+        goals: 0,
+        assists: 0,
+        points: 0,
+        gamesPlayed,
+        starts: gamesPlayed,
+        wins: record.wins,
+        savePct: Math.max(.878, Math.min(.936, .888 + (beautyGoalieQuality - 76) * .0012 + (ratingFor(careerTeam).defense - 84) * .00055 + beautyGoalieForm * .008)),
+        gaa: Math.max(1.9, Math.min(3.9, 3.2 - (ratingFor(careerTeam).defense - 84) * .045 - (beautyGoalieQuality - 78) * .015 - beautyGoalieForm * .2)),
+      }
+    : { player: beautyAwardPlayer, goals: beautyStats.goals, assists: beautyStats.assists, points: beautyStats.points, gamesPlayed, starts: 0, wins: 0, savePct: 0, gaa: 0 };
+  const awardLines = [...leagueLines, beautyAwardLine];
+  const skaterLines = awardLines.filter((line) => line.player.position !== "G");
+  const goalies = awardLines.filter((line) => line.player.position === "G");
+  const userHartBonus = (line: LeagueLine) => line.player.name !== "Your Beauty" ? 0 : Math.max(0, line.points / Math.max(1, gamesPlayed) - .75) * 18 + Math.max(0, line.goals - gamesPlayed * .35) * .09 + Math.max(0, record.wins / Math.max(1, gamesPlayed) - .54) * 10;
+  const userNorrisBonus = (line: LeagueLine) => line.player.name !== "Your Beauty" ? 0 : Math.max(0, line.points / Math.max(1, gamesPlayed) - .5) * 19 + Math.max(0, buildRatings.def - 80) * .18;
+  const userVezinaBonus = (line: LeagueLine) => line.player.name !== "Your Beauty" ? 0 : Math.max(0, record.wins / Math.max(1, gamesPlayed) - .52) * 28 + Math.max(0, line.savePct - .908) * 650 + Math.max(0, 2.8 - line.gaa) * 5;
   const awards = gamesPlayed ? [
-    { award: "Hart Trophy", detail: "League MVP", winner: awardWinner(skaterLines, (line) => line.points + line.goals * .18 + (line.player.ratings.POI ?? 75) * .08 + simulatedRecord(line.player.team, gamesPlayed, seasonSeed).wins * .11, (line) => line.points + line.goals * .18 + (line.player.ratings.POI ?? 75) * .08 + simulatedRecord(line.player.team, gamesPlayed, seasonSeed).wins * .11 + awardVariance(line.player.name, "hart", seasonSeed, 36), 64), value: "GAP" },
+    { award: "Hart Trophy", detail: "League MVP", winner: awardWinner(skaterLines, (line) => line.points + line.goals * .18 + (line.player.ratings.POI ?? 75) * .08 + simulatedRecord(line.player.team, gamesPlayed, seasonSeed).wins * .11 + userHartBonus(line), (line) => line.points + line.goals * .18 + (line.player.ratings.POI ?? 75) * .08 + simulatedRecord(line.player.team, gamesPlayed, seasonSeed).wins * .11 + userHartBonus(line) + awardVariance(line.player.name, "hart", seasonSeed, 36), 64), value: "GAP" },
     { award: "Art Ross Trophy", detail: "Most points", winner: awardWinner(skaterLines, (line) => line.points, (line) => line.points, 72), value: "GAP" },
     { award: "Rocket Richard Trophy", detail: "Most goals", winner: awardWinner(skaterLines, (line) => line.goals, (line) => line.goals, 64), value: "G" },
-    { award: "Norris Trophy", detail: "Top defenseman", winner: awardWinner(skaterLines.filter((line) => line.player.position === "D"), (line) => line.points + (line.player.ratings.DEF ?? 75) * .34 + (line.player.ratings.PAS ?? 75) * .08, (line) => line.points + (line.player.ratings.DEF ?? 75) * .34 + (line.player.ratings.PAS ?? 75) * .08 + awardVariance(line.player.name, "norris", seasonSeed, 28), 42), value: "GAP" },
-    { award: "Vezina Trophy", detail: "Top goaltender", winner: awardWinner(goalies.filter((line) => line.starts >= Math.min(28, gamesPlayed * .42)), (line) => vezinaScore(line), (line) => vezinaScore(line) + awardVariance(line.player.name, "vezina", seasonSeed, 27), 28), value: "GOALIE" },
+    { award: "Norris Trophy", detail: "Top defenseman", winner: awardWinner(skaterLines.filter((line) => line.player.position === "D"), (line) => line.points + (line.player.ratings.DEF ?? 75) * .34 + (line.player.ratings.PAS ?? 75) * .08 + userNorrisBonus(line), (line) => line.points + (line.player.ratings.DEF ?? 75) * .34 + (line.player.ratings.PAS ?? 75) * .08 + userNorrisBonus(line) + awardVariance(line.player.name, "norris", seasonSeed, 28), 42), value: "GAP" },
+    { award: "Vezina Trophy", detail: "Top goaltender", winner: awardWinner(goalies.filter((line) => line.starts >= Math.min(28, gamesPlayed * .42)), (line) => vezinaScore(line) + userVezinaBonus(line), (line) => vezinaScore(line) + userVezinaBonus(line) + awardVariance(line.player.name, "vezina", seasonSeed, 27), 28), value: "GOALIE" },
   ] : [];
 
   useEffect(() => {
